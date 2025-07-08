@@ -1,0 +1,45 @@
+# بخش ۱: نام Workflow
+# این نامی است که در تب "Actions" گیت‌هاب نمایش داده می‌شود.
+name: .NET Build and Test
+
+# بخش ۲: تعریف زمان اجرا (Triggers)
+# به گیت‌هاب می‌گوییم چه زمانی این فرآیند را به صورت خودکار اجرا کند.
+on:
+  # هر زمان که کدی به شاخه‌های اصلی "push" می‌شود.
+  push:
+    branches: [ "main", "master" ]
+  # هر زمان که یک "Pull Request" برای شاخه‌های اصلی ایجاد یا به‌روز می‌شود.
+  pull_request:
+    branches: [ "main", "master" ]
+
+# بخش ۳: تعریف کارها (Jobs)
+# در اینجا کارهایی را که باید انجام شوند، تعریف می‌کنیم.
+jobs:
+  # ما یک کار (job) به نام "build-and-test" تعریف می‌کنیم.
+  build-and-test:
+    # این کار بر روی یک ماشین مجازی با سیستم‌عامل اوبونتو اجرا خواهد شد.
+    runs-on: ubuntu-latest
+
+    # بخش ۴: تعریف مراحل کار به ترتیب (Steps)
+    steps:
+    # مرحله اول: دانلود کد پروژه از ریپازیتوری شما به داخل ماشین مجازی
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # مرحله دوم: نصب نسخه ۸ دات‌نت بر روی ماشین مجازی
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    # مرحله سوم: بازیابی تمام پکیج‌های نوگت که پروژه به آن‌ها نیاز دارد
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # مرحله چهارم: بیلد کردن کل Solution برای اطمینان از نبود خطای کامپایل
+    - name: Build
+      run: dotnet build --no-restore
+
+    # مرحله پنجم (مهم‌ترین بخش): اجرای تمام پروژه‌های تست در Solution
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
