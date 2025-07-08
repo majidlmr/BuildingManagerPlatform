@@ -1,7 +1,7 @@
 # نام Workflow که در تب Actions گیت‌هاب نمایش داده می‌شود
 name: .NET Build and Test
 
-# تعریف زمان اجرای خودکار Workflow
+# این فرآیند با هر push یا pull request به شاخه اصلی اجرا می‌شود
 on:
   push:
     branches: [ "main", "master" ]
@@ -10,29 +10,29 @@ on:
 
 jobs:
   build-and-test:
-    # این کار بر روی یک ماشین مجازی با سیستم‌عامل اوبونتو اجرا خواهد شد
+    # این کار بر روی یک ماشین مجازی اوبونتو اجرا خواهد شد
     runs-on: ubuntu-latest
 
     steps:
-    # مرحله ۱: دانلود کد پروژه از ریپازیتوری
+    # مرحله ۱: دانلود کد از ریپازیتوری
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # مرحله ۲: نصب نسخه ۸ دات‌نت بر روی ماشین مجازی
+    # مرحله ۲: نصب نسخه ۸ دات‌نت
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
 
-    # مرحله ۳ (اصلاح شده): بازیابی پکیج‌ها با مشخص کردن مستقیم فایل Solution
-    # چون Workflow از ریشه پروژه (جایی که .sln هست) اجرا می‌شود، فقط نام فایل کافیست.
+    # مرحله ۳ (ساده شده): بازیابی پکیج‌ها
+    # چون فایل .sln در ریشه پروژه قرار دارد، dotnet آن را خودکار پیدا می‌کند
     - name: Restore dependencies
-      run: dotnet restore BuildingManager.API.sln
+      run: dotnet restore
 
-    # مرحله ۴ (اصلاح شده): بیلد کردن کل Solution
+    # مرحله ۴ (ساده شده): بیلد کردن کل Solution
     - name: Build
-      run: dotnet build BuildingManager.API.sln --no-restore
+      run: dotnet build --no-restore
 
-    # مرحله ۵ (اصلاح شده): اجرای تمام پروژه‌های تست در Solution
+    # مرحله ۵ (ساده شده): اجرای تمام تست‌ها
     - name: Test
-      run: dotnet test BuildingManager.API.sln --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal
