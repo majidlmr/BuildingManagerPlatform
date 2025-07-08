@@ -1,0 +1,25 @@
+﻿services:
+  buildingmanager.api:
+    image: buildingmanagerapi
+    build:
+      context: .
+      dockerfile: BuildingManager.API/Dockerfile
+    ports:
+      - "7001:8080"
+      - "7002:8081"
+    environment:
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+      # --- خط کلیدی جدید در اینجا اضافه می‌شود ---
+      - ConnectionStrings__DefaultConnection=Server=sql-server-db;Database=BuildingManagerDb;User Id=sa;Password=MyDevP@ssw0rd!;TrustServerCertificate=True
+    depends_on:
+      - sql-server-db
+
+  # ... سرویس sql-server-db بدون تغییر باقی می‌ماند ...
+  sql-server-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "MyDevP@ssw0rd!"
