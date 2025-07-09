@@ -102,11 +102,35 @@ builder.Services.AddScoped<IChargeCalculationStrategy, AreaBasedChargeStrategy>(
 builder.Services.AddScoped<IPaymentGatewayService, FakePaymentGatewayService>();
 builder.Services.AddScoped<IOcrService, FakeOcrService>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
+builder.Services.AddSingleton<IOtpService, MockOtpService>(); // Added MockOtpService
 
 // =================================================================
 // بخش ۲: ساخت اپلیکیشن
 // =================================================================
 var app = builder.Build();
+
+// Seed Data in Development Environment
+if (app.Environment.IsDevelopment())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<ApplicationDbContext>();
+            // Ensure database is created/migrated before seeding
+            // context.Database.Migrate(); // Or context.Database.EnsureCreated(); for development
+
+            var logger = services.GetRequiredService<ILogger<BuildingManager.API.Infrastructure.Persistence.ApplicationDbContextSeed>>();
+            await BuildingManager.API.Infrastructure.Persistence.ApplicationDbContextSeed.SeedSampleDataAsync(context, logger);
+        }
+        catch (Exception ex)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred while seeding the database.");
+        }
+    }
+}
 
 // =================================================================
 // بخش ۳: پیکربندی خط لوله درخواست (Request Pipeline)

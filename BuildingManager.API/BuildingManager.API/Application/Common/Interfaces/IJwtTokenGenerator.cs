@@ -1,8 +1,10 @@
-﻿// File: Application/Common/Interfaces/IJwtTokenGenerator.cs
-using BuildingManager.API.Domain.Entities;
-namespace BuildingManager.API.Application.Common.Interfaces;
+﻿using System;
+using System.Collections.Generic;
 
-public interface IJwtTokenGenerator
+namespace BuildingManager.API.Application.Common.Interfaces
 {
-    string GenerateToken(User user);
+    public interface IJwtTokenGenerator
+    {
+        string GenerateToken(int userId, Guid publicId, string firstName, string lastName, string phoneNumber, IReadOnlyList<string> roles);
+    }
 }

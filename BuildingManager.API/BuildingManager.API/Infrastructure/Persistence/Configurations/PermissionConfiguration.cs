@@ -2,19 +2,36 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BuildingManager.API.Infrastructure.Persistence.Configurations;
-
-/// <summary>
-/// پیکربندی موجودیت Permission برای EF Core
-/// </summary>
-public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
+namespace BuildingManager.API.Infrastructure.Persistence.Configurations
 {
-    public void Configure(EntityTypeBuilder<Permission> builder)
+    public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
     {
-        builder.ToTable("Permissions");
-        builder.HasKey(p => p.Id);
+        public void Configure(EntityTypeBuilder<Permission> builder)
+        {
+            builder.ToTable("Permissions", schema: "identity");
 
-        // نام هر دسترسی باید در کل سیستم منحصر به فرد باشد
-        builder.HasIndex(p => p.Name).IsUnique();
+            builder.HasKey(p => p.Id);
+            builder.HasIndex(p => p.Name).IsUnique(); // Permission names must be unique globally
+
+            builder.Property(p => p.Name)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            builder.Property(p => p.Module)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            builder.Property(p => p.Description)
+                .HasMaxLength(500);
+
+            // Configure soft delete query filter (optional for Permissions)
+            builder.HasQueryFilter(p => !p.IsDeleted);
+
+            // Relationships
+            builder.HasMany(p => p.RolePermissions)
+                .WithOne(rp => rp.Permission)
+                .HasForeignKey(rp => rp.PermissionId)
+                .OnDelete(DeleteBehavior.Cascade); // If a permission is deleted, its links to roles are removed
+        }
     }
 }

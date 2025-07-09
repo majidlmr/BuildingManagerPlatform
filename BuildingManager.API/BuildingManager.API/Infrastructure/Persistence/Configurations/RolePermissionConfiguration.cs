@@ -2,28 +2,35 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BuildingManager.API.Infrastructure.Persistence.Configurations;
-
-/// <summary>
-/// پیکربندی جدول واسط RolePermission برای EF Core
-/// </summary>
-public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermission>
+namespace BuildingManager.API.Infrastructure.Persistence.Configurations
 {
-    public void Configure(EntityTypeBuilder<RolePermission> builder)
+    public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermission>
     {
-        // تعریف کلید اصلی ترکیبی (Composite Primary Key)
-        builder.HasKey(rp => new { rp.RoleId, rp.PermissionId });
+        public void Configure(EntityTypeBuilder<RolePermission> builder)
+        {
+            builder.ToTable("RolePermissions", schema: "identity");
 
-        // تعریف رابطه با نقش: اگر نقش حذف شد، دسترسی‌های آن نیز حذف شود
-        builder.HasOne(rp => rp.Role)
-               .WithMany(r => r.Permissions)
-               .HasForeignKey(rp => rp.RoleId)
-               .OnDelete(DeleteBehavior.Cascade);
+            builder.HasKey(rp => rp.Id); // Changed from composite key to single PK
 
-        // تعریف رابطه با دسترسی: اگر دسترسی حذف شد، تخصیص آن به نقش‌ها نیز حذف شود
-        builder.HasOne(rp => rp.Permission)
-               .WithMany()
-               .HasForeignKey(rp => rp.PermissionId)
-               .OnDelete(DeleteBehavior.Cascade);
+            // A role should have a specific permission only once.
+            builder.HasIndex(rp => new { rp.RoleId, rp.PermissionId }).IsUnique();
+
+            builder.Property(rp => rp.AssignedAt)
+                .IsRequired();
+
+            // Configure soft delete query filter
+            builder.HasQueryFilter(rp => !rp.IsDeleted);
+
+            // Relationships
+            builder.HasOne(rp => rp.Role)
+                .WithMany(r => r.RolePermissions) // Corrected navigation property name in Role entity
+                .HasForeignKey(rp => rp.RoleId)
+                .OnDelete(DeleteBehavior.Cascade); // If Role is deleted, this link is removed.
+
+            builder.HasOne(rp => rp.Permission)
+                .WithMany(p => p.RolePermissions) // Corrected navigation property name in Permission entity
+                .HasForeignKey(rp => rp.PermissionId)
+                .OnDelete(DeleteBehavior.Cascade); // If Permission is deleted, this link is removed.
+        }
     }
 }

@@ -1,51 +1,67 @@
-﻿// File: Application/Common/Interfaces/IAuthorizationService.cs
+﻿using BuildingManager.API.Domain.Entities; // For HierarchyLevel enum
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BuildingManager.API.Application.Common.Interfaces;
-
-/// <summary>
-/// سرویس متمرکز برای بررسی دسترسی‌ها بر اساس سیستم RBAC.
-/// این اینترفیس هم متدهای سطح بالا برای سناریوهای رایج و هم یک متد اصلی
-/// برای بررسی دسترسی‌های دانه‌ریز را فراهم می‌کند.
-/// </summary>
-public interface IAuthorizationService
+namespace BuildingManager.API.Application.Common.Interfaces
 {
-    // --- متد اصلی و قدرتمند RBAC ---
-
     /// <summary>
-    /// بررسی می‌کند که آیا یک کاربر، دسترسی (Permission) خاصی را در یک ساختمان مشخص دارد یا خیر.
-    /// این متد هسته اصلی سیستم دسترسی است.
+    /// Centralized service for authorization checks based on the RBAC system.
     /// </summary>
-    /// <param name="userId">شناسه کاربری که باید بررسی شود.</param>
-    /// <param name="buildingId">شناسه ساختمانی که دسترسی در آن مورد نیاز است.</param>
-    /// <param name="permissionName">نام دسترسی مورد نیاز (مثلا: "Ticket.Update").</param>
-    /// <param name="cancellationToken">توکن انصراف.</param>
-    /// <returns>True اگر کاربر دسترسی را داشته باشد، در غیر این صورت False.</returns>
-    Task<bool> HasPermissionAsync(int userId, int buildingId, string permissionName, CancellationToken cancellationToken = default);
+    public interface IAuthorizationService
+    {
+        /// <summary>
+        /// Checks if a user has a specific permission, optionally scoped to a target entity (Complex or Block).
+        /// This is the core method for fine-grained permission checks.
+        /// </summary>
+        /// <param name="userId">The ID of the user to check.</param>
+        /// <param name="permissionName">The name of the permission required (e.g., "Permissions.Block.Update").</param>
+        /// <param name="entityLevel">The level of the target entity (Complex, Block), or null for System-level permissions.</param>
+        /// <param name="targetEntityId">The internal ID of the target Complex or Block, or null if not entity-specific.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>True if the user has the permission, otherwise false.</returns>
+        Task<bool> HasPermissionAsync(
+            int userId,
+            string permissionName,
+            HierarchyLevel? entityLevel = null,
+            int? targetEntityId = null,
+            CancellationToken cancellationToken = default);
 
-    // --- متدهای کمکی و کاربردی (ترکیبی از نسخه شما و معماری جدید) ---
+        /// <summary>
+        /// Checks if a user is actively associated with a specific Complex (e.g., has an active role assigned to it).
+        /// </summary>
+        Task<bool> IsAssociatedWithComplexAsync(int userId, int complexId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// بررسی می‌کند که آیا کاربر عضو یک ساختمان (با هر نقشی) است یا خیر.
-    /// این متد برای دسترسی‌های عمومی مانند مشاهده اطلاعات کلی ساختمان استفاده می‌شود.
-    /// </summary>
-    Task<bool> IsMemberOfBuildingAsync(int userId, int buildingId, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Checks if a user is actively associated with a specific Block (e.g., has an active role assigned to it, or is an active resident).
+        /// </summary>
+        Task<bool> IsAssociatedWithBlockAsync(int userId, int blockId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// بررسی می‌کند که آیا کاربر به یک تیکت خاص دسترسی دارد یا خیر.
-    /// یک کاربر در صورتی به تیکت دسترسی دارد که:
-    /// 1. خودش گزارش‌دهنده تیکت باشد.
-    /// 2. دسترسی "Ticket.Read" را در ساختمان مربوطه داشته باشد.
-    /// </summary>
-    Task<bool> CanAccessTicketAsync(int userId, Guid ticketPublicId, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Checks if a user is an active resident (owner or tenant) of a specific Unit.
+        /// </summary>
+        Task<bool> IsActiveResidentOfUnitAsync(int userId, int unitId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// بررسی می‌کند که آیا کاربر به یک صورتحساب خاص دسترسی دارد یا خیر.
-    /// یک کاربر در صورتی به صورتحساب دسترسی دارد که:
-    /// 1. صورتحساب برای خود او صادر شده باشد.
-    /// 2. دسترسی "Billing.Read" را در ساختمان مربوطه داشته باشد.
-    /// </summary>
-    Task<bool> CanAccessInvoiceAsync(int userId, Guid invoicePublicId, CancellationToken cancellationToken = default);
+
+        // Specific access checks can still be useful for clarity in business logic
+        // These will internally use HasPermissionAsync or other checks.
+
+        /// <summary>
+        /// Checks if the user can access a specific ticket.
+        /// Access is granted if the user reported the ticket, is assigned to it,
+        /// or has broader ticket viewing permissions within the ticket's scope (Block/Complex).
+        /// </summary>
+        Task<bool> CanAccessTicketAsync(int userId, Guid ticketPublicId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Checks if the user can access a specific invoice.
+        /// Access is granted if the invoice is for the user, or if the user has broader
+        /// invoice viewing permissions within the invoice's scope (Unit/Block/Complex).
+        /// </summary>
+        Task<bool> CanAccessInvoiceAsync(int userId, Guid invoicePublicId, CancellationToken cancellationToken = default);
+
+        // Add more specific checks as needed, e.g.:
+        // Task<bool> CanManageUsersInComplexAsync(int currentUserId, int complexId, CancellationToken cancellationToken = default);
+        // Task<bool> CanEditBlockDetailsAsync(int currentUserId, int blockId, CancellationToken cancellationToken = default);
+    }
 }

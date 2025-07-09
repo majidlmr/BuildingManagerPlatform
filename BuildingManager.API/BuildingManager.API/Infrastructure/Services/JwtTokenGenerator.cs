@@ -1,66 +1,74 @@
-﻿// File: Infrastructure/Services/JwtTokenGenerator.cs
-
-using BuildingManager.API.Application.Common.Interfaces;
-using BuildingManager.API.Domain.Entities;
+﻿using BuildingManager.API.Application.Common.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace BuildingManager.API.Infrastructure.Services;
-// این یک کلاس نمونه برای تنظیمات است
-public class JwtSettings
+namespace BuildingManager.API.Infrastructure.Services
 {
-    public const string SectionName = "JwtSettings";
-    public string Secret { get; init; } = null!;
-    public string Issuer { get; init; } = null!;
-    public string Audience { get; init; } = null!;
-}
-
-public class JwtTokenGenerator : IJwtTokenGenerator
-{
-    private readonly JwtSettings _jwtSettings;
-
-    public JwtTokenGenerator(IOptions<JwtSettings> jwtSettings)
+    // This class might be better placed in a Domain/ValueObjects or a dedicated ConfigurationModels folder.
+    public class JwtSettings
     {
-        _jwtSettings = jwtSettings.Value;
+        public const string SectionName = "JwtSettings";
+        public string Secret { get; init; } = null!;
+        public string Issuer { get; init; } = null!;
+        public string Audience { get; init; } = null!;
+        public int ExpiryHours { get; init; } = 8; // Default expiry to 8 hours
     }
 
-    public string GenerateToken(User user)
+    public class JwtTokenGenerator : IJwtTokenGenerator
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
+        private readonly JwtSettings _jwtSettings;
 
-        var claims = new List<Claim>
+        public JwtTokenGenerator(IOptions<JwtSettings> jwtSettings)
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(JwtRegisteredClaimNames.NameId, user.Id.ToString()), // اضافه کردن NameIdentifier که در کنترلرها استفاده می‌شود
-            new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-            new(JwtRegisteredClaimNames.Name, user.FullName),
-        };
-
-        // ✅ تغییر اصلی: به ازای هر نقش کاربر، یک claim از نوع "role" به توکن اضافه می‌شود
-        if (user.UserRoles != null)
-        {
-            foreach (var userRole in user.UserRoles)
+            _jwtSettings = jwtSettings.Value;
+            if (string.IsNullOrEmpty(_jwtSettings.Secret) || _jwtSettings.Secret.Length < 32) // Example minimum length
             {
-                claims.Add(new Claim("role", userRole.Role.Name));
+                throw new ArgumentException("JWT Secret must be configured and be of sufficient length.", nameof(jwtSettings));
             }
         }
 
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var tokenDescriptor = new SecurityTokenDescriptor
+        public string GenerateToken(int userId, Guid publicId, string firstName, string lastName, string phoneNumber, IReadOnlyList<string> roles)
         {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddHours(8),
-            Issuer = _jwtSettings.Issuer,
-            Audience = _jwtSettings.Audience,
-            SigningCredentials = creds
-        };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
 
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+            var claims = new List<Claim>
+            {
+                new(JwtRegisteredClaimNames.Sub, userId.ToString()), // Subject (usually user's unique ID)
+                new(JwtRegisteredClaimNames.NameId, publicId.ToString()), // Using PublicId as NameIdentifier
+                new("uid", userId.ToString()), // Custom claim for integer UserId if needed elsewhere
+                new(JwtRegisteredClaimNames.GivenName, firstName),
+                new(JwtRegisteredClaimNames.FamilyName, lastName),
+                new("phone_number", phoneNumber), // Using "phone_number" claim for phone
+                // new(JwtRegisteredClaimNames.Email, email ?? string.Empty), // If email is passed
+            };
+
+            if (roles != null)
+            {
+                foreach (var role in roles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role)); // Using ClaimTypes.Role for standard role claim
+                }
+            }
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature); // More specific algorithm
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(_jwtSettings.ExpiryHours),
+                Issuer = _jwtSettings.Issuer,
+                Audience = _jwtSettings.Audience,
+                SigningCredentials = creds
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
     }
 }

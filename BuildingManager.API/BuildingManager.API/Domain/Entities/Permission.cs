@@ -1,19 +1,35 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace BuildingManager.API.Domain.Entities;
-
-/// <summary>
-/// نمایانگر یک دسترسی (مجوز) خاص در سیستم است.
-/// مثلا: "Ticket.Create", "Billing.View"
-/// </summary>
-public class Permission
+namespace BuildingManager.API.Domain.Entities
 {
-    [Key]
-    public int Id { get; set; }
+    /// <summary>
+    /// Represents a specific permission in the system.
+    /// e.g., "Ticket.Create", "Billing.ViewAllInvoicesInBlock", "User.AssignRoleToBlock"
+    /// </summary>
+    public class Permission
+    {
+        [Key]
+        public int Id { get; set; }
 
-    [Required]
-    [MaxLength(100)]
-    public string Name { get; set; } // نام منحصر به فرد دسترسی
+        [Required]
+        [MaxLength(150)] // Increased length for more descriptive permission names like "Module.SubModule.Action"
+        public string Name { get; set; } // Unique name of the permission
 
-    public string Description { get; set; }
+        [Required]
+        [MaxLength(100)]
+        public string Module { get; set; } // The module this permission belongs to (e.g., "Billing", "Ticketing", "UserManagement")
+
+        [MaxLength(500)]
+        public string? Description { get; set; }
+
+        // Soft delete fields (optional for permissions, as they are usually seeded and rarely deleted)
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+        public int? DeletedByUserId { get; set; }
+
+        // Navigation Property
+        public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
+    }
 }
