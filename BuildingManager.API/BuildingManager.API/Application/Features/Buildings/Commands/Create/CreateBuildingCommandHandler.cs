@@ -99,7 +99,7 @@ public class CreateBuildingCommandHandler : IRequestHandler<CreateBuildingComman
         {
             // ownerRole.RolePermissions.Add(new RolePermission { PermissionId = permission.Id, RoleId = ownerRole.Id });
             // به جای خط بالا، اگر RolePermissions در Role به درستی تنظیم شده باشد:
-             ownerRole.RolePermissions.Add(new RolePermission { Permission = permission, Role = ownerRole });
+            ownerRole.RolePermissions.Add(new RolePermission { Permission = permission, Role = ownerRole });
         }
 
         // گام ۵: ثبت کاربر سازنده به عنوان مدیر در جدول ManagerAssignments (اگر هنوز نیاز است)
@@ -118,7 +118,7 @@ public class CreateBuildingCommandHandler : IRequestHandler<CreateBuildingComman
             UserId = request.OwnerUserId,
             Role = ownerRole, // تخصیص خود شیء Role
             TargetEntityId = block.Id, // شناسه بلوک تازه ایجاد شده - این فیلد باید پس از ذخیره block مقداردهی شود
-            AssignmentStatus = Domain.Enums.AssignmentStatus.Active // وضعیت فعال
+            AssignmentStatus = AssignmentStatus.Active // وضعیت فعال
             // AssignedByUserId = request.OwnerUserId // کاربری که تخصیص داده
         };
 
@@ -199,36 +199,6 @@ public class CreateBuildingCommandHandler : IRequestHandler<CreateBuildingComman
     }
 
 
-    // قبلی، برای مرجع
-    // private async Task<List<Permission>> SeedAndGetAllPermissionsAsync(CancellationToken cancellationToken)
-    // {
-    //     var permissionNames = new List<string>
-    //     {
-    //         "Building.Update", "Building.Delete",
-    //         "Unit.Create", "Unit.Update", "Unit.Delete",
-    //         "Member.Read", "Member.Invite", "Member.Remove",
-            "Role.Create", "Role.Update", "Role.Delete", "Role.Assign",
-            "Ticket.Read", "Ticket.UpdateStatus",
-            "Billing.CreateCycle", "Billing.Read", "Financials.ReadSummary", "Expense.Create", "Revenue.Create",
-            "Announcement.Create", "Rule.Create", "Poll.Create"
-        }.Distinct().ToList();
-
-        var existingPermissions = await _context.Permissions
-            .Where(p => permissionNames.Contains(p.Name))
-            .ToListAsync(cancellationToken);
-
-        var newPermissionNames = permissionNames.Except(existingPermissions.Select(p => p.Name));
-
-        if (newPermissionNames.Any())
-        {
-            foreach (var name in newPermissionNames)
-            {
-                var permission = new Permission { Name = name, Description = $"Allows to {name.Replace('.', ' ')}" };
-                await _context.Permissions.AddAsync(permission, cancellationToken);
-            }
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-        }
-
-        return await _context.Permissions.ToListAsync(cancellationToken);
-    }
+    // متد قبلی SeedAndGetAllPermissionsAsync به طور کامل با SeedAndGetBlockPermissionsAsync جایگزین شده است.
+    // بنابراین کامنت‌های ناقص مربوط به آن حذف شد.
 }
