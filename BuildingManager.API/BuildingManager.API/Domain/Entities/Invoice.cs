@@ -49,4 +49,10 @@ public class Invoice
     public ICollection<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();
 
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

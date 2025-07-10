@@ -32,4 +32,10 @@ public class Announcement
     public DateTime? ExpiresAt { get; set; } // تاریخ انقضای اعلان (اختیاری)
 
     public bool IsPinned { get; set; } = false; // آیا اعلان پین شده است؟
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

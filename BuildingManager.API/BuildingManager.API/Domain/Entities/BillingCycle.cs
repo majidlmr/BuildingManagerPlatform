@@ -14,4 +14,10 @@ public class BillingCycle
     public DateTime DueDate { get; set; } // تاریخ سررسید
     [Required]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

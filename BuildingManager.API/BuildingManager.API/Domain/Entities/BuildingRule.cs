@@ -46,4 +46,10 @@ public class BuildingRule
     /// لیستی از تاییدیه‌های ثبت شده برای این قانون.
     /// </summary>
     public ICollection<RuleAcknowledgment> Acknowledgments { get; set; } = new List<RuleAcknowledgment>();
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

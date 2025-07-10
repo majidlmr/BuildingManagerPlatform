@@ -25,4 +25,10 @@ public class ManagerAssignment
     [Required]
     [MaxLength(100)]
     public string Role { get; set; } = "Manager"; // یک مقدار پیش‌فرض
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

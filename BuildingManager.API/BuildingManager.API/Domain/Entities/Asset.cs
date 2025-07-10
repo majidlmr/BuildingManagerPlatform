@@ -16,4 +16,10 @@ public class Asset
     public string Identifier { get; set; } // "P-101"
     public string? LocationDescription { get; set; }
     public ICollection<AssetAssignment> Assignments { get; set; } = new List<AssetAssignment>();
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

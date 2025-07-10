@@ -23,4 +23,10 @@ public class PollOption
     /// لیستی از رای‌هایی که به این گزینه داده شده است.
     /// </summary>
     public ICollection<Vote> Votes { get; set; } = new List<Vote>();
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

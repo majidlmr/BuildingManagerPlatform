@@ -43,4 +43,10 @@ public class Vehicle
 
     [Required]
     public bool IsDefault { get; set; } = true; // آیا این خودروی اصلی کاربر است؟
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

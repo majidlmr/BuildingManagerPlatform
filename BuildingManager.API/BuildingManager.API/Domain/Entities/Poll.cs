@@ -39,4 +39,10 @@ public class Poll
     /// لیستی از گزینه‌های قابل انتخاب برای این نظرسنجی.
     /// </summary>
     public ICollection<PollOption> Options { get; set; } = new List<PollOption>();
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

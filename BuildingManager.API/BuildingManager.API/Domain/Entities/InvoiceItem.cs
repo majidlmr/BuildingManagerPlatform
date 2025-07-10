@@ -23,4 +23,10 @@ public class InvoiceItem
     [Required]
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Amount { get; set; }
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

@@ -31,8 +31,13 @@ public class Message
     [Required]
     public bool IsAnonymous { get; set; } = false;
 
-    [Required]
-    public bool IsDeleted { get; set; } = false;
+    // Soft delete fields for the message entity itself
+    public bool IsSoftDeleted { get; set; } = false;
+    public DateTime? SoftDeletedAt { get; set; }
+    public int? SoftDeletedByUserId { get; set; }
+    // public User? SoftDeletedByUser { get; set; }
 
-    public DateTime? DeletedAt { get; set; }
+    // Note: The original IsDeleted and DeletedAt might have been intended for "deleted for everyone" logic.
+    // If specific "delete for sender" or "delete for everyone" flags are needed beyond soft delete,
+    // they would be separate properties. For now, standard soft delete is implemented.
 }

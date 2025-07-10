@@ -24,4 +24,10 @@ public class RuleAcknowledgment
     /// </summary>
     [Required]
     public DateTime AcknowledgedAt { get; set; } = DateTime.UtcNow;
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

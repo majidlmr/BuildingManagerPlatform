@@ -35,4 +35,10 @@ public class Revenue
 
     [Required]
     public int RecordedByUserId { get; set; }
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

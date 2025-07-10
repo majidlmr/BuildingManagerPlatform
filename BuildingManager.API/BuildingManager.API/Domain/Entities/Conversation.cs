@@ -44,4 +44,10 @@ public class Conversation
 
     // لیست پیام‌های ارسال شده در این گفتگو
     public ICollection<Message> Messages { get; set; } = new List<Message>();
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }

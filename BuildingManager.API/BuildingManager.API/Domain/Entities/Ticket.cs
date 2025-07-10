@@ -58,4 +58,10 @@ public class Ticket
     public string? AttachmentUrl { get; set; }
 
     public ICollection<TicketUpdate> Updates { get; set; } = new List<TicketUpdate>();
+
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedByUserId { get; set; }
+    // public User? DeletedByUser { get; set; }
 }
