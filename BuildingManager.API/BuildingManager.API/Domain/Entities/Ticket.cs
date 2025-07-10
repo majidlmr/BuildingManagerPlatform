@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System;
 using System.Collections.Generic;
+using BuildingManager.API.Domain.Enums; // Added for Enums
 
 namespace BuildingManager.API.Domain.Entities;
 
@@ -14,9 +15,12 @@ public class Ticket
     [Required]
     public Guid PublicId { get; set; } = Guid.NewGuid();
 
+    public int? ComplexId { get; set; } // Added ComplexId
+    public Complex? Complex { get; set; } // Added Navigation for Complex
+
     [Required]
-    public int BlockId { get; set; } // Changed from BuildingId
-    public Block Block { get; set; } // Changed from Building
+    public int BlockId { get; set; }
+    public Block Block { get; set; }
 
     public int? UnitId { get; set; }
     public Unit? Unit { get; set; }
@@ -24,6 +28,9 @@ public class Ticket
     [Required]
     public int ReportedByUserId { get; set; }
     public User ReportedBy { get; set; }
+
+    public int? AssignedToUserId { get; set; } // Added AssignedToUserId
+    public User? AssignedToUser { get; set; } // Added Navigation for AssignedToUser
 
     // 🚀 فیلد جدید: برای پیاده‌سازی قابلیت ارسال ناشناس
     // اگر این مقدار true باشد، در هنگام نمایش تیکت، هویت ارسال‌کننده مخفی خواهد ماند.
@@ -36,26 +43,25 @@ public class Ticket
 
     [Required]
     public string Description { get; set; }
+    public string? ResolutionDetails { get; set; } // Added ResolutionDetails
 
     [Required]
-    [MaxLength(100)]
-    public string Category { get; set; }
+    public TicketCategory Category { get; set; } // Changed to Enum
 
     [Required]
-    [MaxLength(50)]
-    public string Priority { get; set; }
+    public TicketPriority Priority { get; set; } // Changed to Enum
 
     [Required]
-    [MaxLength(50)]
-    public string Status { get; set; }
+    public TicketStatus Status { get; set; } // Changed to Enum
 
     [Required]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public DateTime? UpdatedAt { get; set; }
-    public DateTime? ResolvedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; } // This is LastUpdatedAt from spec
+    public DateTime? ResolvedAt { get; set; } // This is ClosedAt from spec (can be debated)
 
-    public string? AttachmentUrl { get; set; }
+    // public string? AttachmentUrl { get; set; } // Removed, will be replaced by ICollection<TicketAttachment>
+    public ICollection<TicketAttachment> Attachments { get; set; } = new List<TicketAttachment>(); // Added for multiple attachments
 
     public ICollection<TicketUpdate> Updates { get; set; } = new List<TicketUpdate>();
 

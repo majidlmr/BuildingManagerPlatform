@@ -9,25 +9,27 @@ namespace BuildingManager.API.Application.Features.Buildings.Queries.GetMyBuildi
 
 public class GetMyBuildingsQueryHandler : IRequestHandler<GetMyBuildingsQuery, List<BuildingSummaryDto>>
 {
-    private readonly IBuildingRepository _buildingRepository; // ✅ استفاده از ریپازیتوری به جای DbContext مستقیم
+    private readonly IBlockRepository _blockRepository; // Changed from IBuildingRepository
 
-    public GetMyBuildingsQueryHandler(IBuildingRepository buildingRepository)
+    public GetMyBuildingsQueryHandler(IBlockRepository blockRepository) // Changed from IBuildingRepository
     {
-        _buildingRepository = buildingRepository;
+        _blockRepository = blockRepository;
     }
 
     public async Task<List<BuildingSummaryDto>> Handle(GetMyBuildingsQuery request, CancellationToken cancellationToken)
     {
-        // ✅ فراخوانی متد جدید از ریپازیتوری
-        var buildings = await _buildingRepository.GetBuildingsByManagerIdAsync(request.OwnerUserId);
+        // Call the renamed method from IBlockRepository
+        var blocks = await _blockRepository.GetBlocksByManagerIdAsync(request.OwnerUserId); // Changed method name and variable
 
-        // Map کردن نتیجه به DTO
-        return buildings.Select(b => new BuildingSummaryDto(
+        // Map the result to DTO
+        // Ensure BuildingSummaryDto can be constructed with Block properties
+        // or consider creating a BlockSummaryDto
+        return blocks.Select(b => new BuildingSummaryDto(
                 b.Id,
                 b.PublicId,
-                b.Name,
-                b.BuildingType,
-                b.Address
+                b.NameOrNumber, // Assuming Block entity uses NameOrNumber
+                b.BlockType,    // Assuming Block entity uses BlockType
+                b.Address       // Assuming Block entity has Address
             )).ToList();
     }
 }
