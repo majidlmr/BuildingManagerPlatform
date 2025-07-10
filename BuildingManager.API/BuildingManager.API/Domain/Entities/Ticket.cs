@@ -15,8 +15,8 @@ public class Ticket
     public Guid PublicId { get; set; } = Guid.NewGuid();
 
     [Required]
-    public int BuildingId { get; set; }
-    public Building Building { get; set; }
+    public int BlockId { get; set; } // Changed from BuildingId
+    public Block Block { get; set; } // Changed from Building
 
     public int? UnitId { get; set; }
     public Unit? Unit { get; set; }

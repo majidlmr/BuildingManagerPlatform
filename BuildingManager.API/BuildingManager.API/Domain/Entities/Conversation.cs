@@ -36,11 +36,11 @@ public class Conversation
     public string? ImageUrl { get; set; }
 
     // شناسه ساختمان، فقط برای چت‌های گروهی مربوط به یک ساختمان خاص کاربرد دارد
-    public int? BuildingId { get; set; }
-    public Building Building { get; set; }
+    public int? BlockId { get; set; } // Changed from BuildingId
+    public Block Block { get; set; } // Changed from Building
 
     // لیست شرکت‌کنندگان در این گفتگو
-    public ICollection<Participant> Participants { get; set; } = new List<Participant>();
+    public ICollection<ConversationParticipant> ConversationParticipants { get; set; } = new List<ConversationParticipant>(); // Changed from Participant
 
     // لیست پیام‌های ارسال شده در این گفتگو
     public ICollection<Message> Messages { get; set; } = new List<Message>();

@@ -16,8 +16,8 @@ public class ManagerAssignment
     public User User { get; set; }
 
     [Required]
-    public int BuildingId { get; set; }
-    public Building Building { get; set; }
+    public int BlockId { get; set; }
+    public Block Block { get; set; }
 
     /// <summary>
     /// نقشی که مدیر در ساختمان دارد (مثلا: مدیر اصلی، عضو هیئت مدیره)

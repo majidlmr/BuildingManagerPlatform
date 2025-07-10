@@ -11,8 +11,8 @@ public class Expense
     public int Id { get; set; }
 
     [Required]
-    public int BuildingId { get; set; }
-    public Building Building { get; set; }
+    public int BlockId { get; set; } // Changed from BuildingId
+    public Block Block { get; set; } // Changed from Building
 
     [Required]
     [MaxLength(250)]

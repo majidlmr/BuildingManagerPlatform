@@ -17,5 +17,5 @@ public record CreateBuildingCommand(
     decimal? Longitude,
     string? Amenities,
     int OwnerUserId, // کاربری که ساختمان/بلوک را ایجاد می‌کند
-    int? ParentBuildingId = null // ✅ (جدید) شناسه والد (مجتمع) که این بلوک به آن تعلق دارد
+    int? ParentComplexId = null // شناسه والد (مجتمع) که این بلوک به آن تعلق دارد
 ) : IRequest<int>;
