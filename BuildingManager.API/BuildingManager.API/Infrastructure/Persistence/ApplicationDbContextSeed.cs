@@ -20,7 +20,7 @@ namespace BuildingManager.API.Infrastructure.Persistence
             await Task.CompletedTask;
         }
 
-        public static async Task SeedSampleDataAsync(ApplicationDbContext context, ILogger<ApplicationDbContextSeed> logger)
+        public static async Task SeedSampleDataAsync(ApplicationDbContext context, ILogger logger)
         {
             try
             {

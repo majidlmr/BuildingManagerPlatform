@@ -22,7 +22,19 @@ public class InvoiceItem
 
     [Required]
     [Column(TypeName = "decimal(18, 2)")]
-    public decimal Amount { get; set; }
+    public decimal Quantity { get; set; }
+
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal UnitPrice { get; set; }
+
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal TotalAmount { get; set; } // Was Amount, renamed based on spec
+
+    // Foreign Key for ExpenseType (Category)
+    public int? ExpenseCategoryId { get; set; }
+    public ExpenseType? ExpenseCategory { get; set; }
 
     // Soft delete fields
     public bool IsDeleted { get; set; } = false;
