@@ -80,6 +80,9 @@ builder.Services.AddMediatR(cfg =>
 // ثبت اعتبارسنج‌های FluentValidation
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
+// Register AutoMapper
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
 // ✅ (اصلاح شده) ثبت DbContext با سینتکس صحیح
 builder.Services.AddDbContext<IApplicationDbContext, ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sqlServerOptionsAction: sqlOptions =>

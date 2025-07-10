@@ -3,7 +3,9 @@ using BuildingManager.API.Application.Common.Interfaces;
 using BuildingManager.API.Domain.Entities;
 using BuildingManager.API.Domain.Events;
 using BuildingManager.API.Domain.Interfaces;
+using BuildingManager.API.Domain.Enums; // Added for Enums
 using MediatR;
+using Microsoft.EntityFrameworkCore; // Added for FirstOrDefaultAsync
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,11 +14,6 @@ namespace BuildingManager.API.Application.Features.Tickets.Commands.CreateTicket
 
 /// <summary>
 /// پردازشگر دستور ایجاد یک تیکت جدید.
-/// این کلاس مسئولیت‌های زیر را بر عهده دارد:
-/// 1. بررسی دسترسی کاربر برای ثبت تیکت.
-/// 2. ایجاد موجودیت تیکت با اطلاعات دریافتی.
-/// 3. ذخیره تیکت در دیتابیس.
-/// 4. انتشار رویداد عمومی 'TicketCreatedEvent' برای اطلاع‌رسانی به سایر ماژول‌ها.
 /// </summary>
 public class CreateTicketCommandHandler : IRequestHandler<CreateTicketCommand, Guid>
 {
@@ -39,38 +36,50 @@ public class CreateTicketCommandHandler : IRequestHandler<CreateTicketCommand, G
 
     public async Task<Guid> Handle(CreateTicketCommand request, CancellationToken cancellationToken)
     {
-        // گام ۱: بررسی امنیتی - آیا کاربری که تیکت را ثبت می‌کند، عضو ساختمان است؟
-        var canAccess = await _authorizationService.IsMemberOfBuildingAsync(request.ReportedByUserId, request.BuildingId, cancellationToken);
+        // Step 1: Security check - Is the user a member of the block?
+        // Assuming IsMemberOfBuildingAsync is updated or replaced by IsMemberOfBlockAsync
+        var canAccess = await _authorizationService.IsMemberOfBlockAsync(request.ReportedByUserId, request.BlockId, cancellationToken);
         if (!canAccess)
         {
-            throw new ForbiddenAccessException("شما اجازه ثبت تیکت در این ساختمان را ندارید.");
+            throw new ForbiddenAccessException("شما اجازه ثبت تیکت در این بلوک را ندارید.");
         }
 
-        // گام ۲: ایجاد موجودیت تیکت جدید با تمام اطلاعات ورودی
+        // Optional: Fetch the block to get ComplexId if it's not directly in the command
+        var block = await _context.Blocks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == request.BlockId, cancellationToken);
+
+        if (block == null) // Should not happen if IsMemberOfBlockAsync passed, but good practice
+        {
+            throw new NotFoundException($"بلوک با شناسه {request.BlockId} یافت نشد.");
+        }
+
+        // Step 2: Create the new ticket entity
         var ticket = new Ticket
         {
-            BuildingId = request.BuildingId,
+            BlockId = request.BlockId, // Changed from BuildingId
+            ComplexId = block.ParentComplexId, // Set ComplexId from the block
             UnitId = request.UnitId,
             ReportedByUserId = request.ReportedByUserId,
             Title = request.Title,
             Description = request.Description,
-            Category = request.Category,
-            Priority = request.Priority,
-            AttachmentUrl = request.AttachmentUrl,
-            Status = "Open", // وضعیت اولیه تمام تیکت‌ها
-            CreatedAt = DateTime.UtcNow,
+            Category = request.Category, // Now an Enum
+            Priority = request.Priority, // Now an Enum
+            // AttachmentUrl is removed
+            Status = TicketStatus.Open, // Changed to Enum, initial status
+            CreatedAt = DateTime.UtcNow, // Already set by default in entity if configured, but explicit is fine
             IsAnonymous = request.IsAnonymous
+            // AssignedToUserId and ResolutionDetails will be null by default
         };
 
-        // گام ۳: افزودن تیکت به دیتابیس و ذخیره تغییرات
+        // Step 3: Add the ticket to the database and save changes
         await _context.Tickets.AddAsync(ticket, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // گام ۴ (مهم): انتشار یک رویداد عمومی پس از ساخت هر نوع تیکت
-        // این کار به سایر بخش‌های سیستم اجازه می‌دهد به این اتفاق واکنش نشان دهند.
+        // Step 4: Publish a domain event
         await _publisher.Publish(new TicketCreatedEvent(ticket), cancellationToken);
 
-        // گام ۵: برگرداندن شناسه عمومی تیکت برای استفاده کلاینت
+        // Step 5: Return the public ID of the new ticket
         return ticket.PublicId;
     }
 }
