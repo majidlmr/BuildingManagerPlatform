@@ -28,7 +28,7 @@ public class GetMyBuildingsQueryHandler : IRequestHandler<GetMyBuildingsQuery, L
                 b.Id,
                 b.PublicId,
                 b.NameOrNumber, // Assuming Block entity uses NameOrNumber
-                b.BlockType,    // Assuming Block entity uses BlockType
+                b.BlockType.ToString(),    // Corrected: Convert Enum to string
                 b.Address       // Assuming Block entity has Address
             )).ToList();
     }
